@@ -1,4 +1,0 @@
-sentify
-Wikipedia-API
-matplotlib
-pygraphviz
