@@ -13,3 +13,6 @@ sentence_transformers
 sentify
 streamlit
 tiktoken
+uvicorn
+types-PyYAML
+
