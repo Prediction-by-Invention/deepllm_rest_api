@@ -1,9 +1,17 @@
-import os
-import shutil
-import pickle
 import json
-import openai
-from deepllm.configurator import *
+import os
+import pickle
+import shutil
+
+from dotenv import load_dotenv
+
+from src.deepllm.configurator import Mdict
+
+# take environment variables from .env.
+load_dotenv()
+
+# OpenAI public api
+OPENI_API_KEY = os.environ["OPENAI_API_KEY"]
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -34,19 +42,18 @@ GPT_PARAMS = dict(
     ROOT="./STATE_SMARTER/",
     CACHES="caches/",
     DATA="data/",
-    OUT='out/',
+    OUT="out/",
     # model="gpt-3.5-turbo",
     # model="gpt-4",
-    #model='gpt-4-turbo',
-    model='gpt-4o',
+    # model='gpt-4-turbo',
+    model="gpt-4o",
     emebedding_model="text-embedding-3-large",
     temperature=0.2,
     n=1,
     max_toks=12000,
     TOP_K=3,
     API_BASE="https://api.openai.com/v1",
-    LOCAL_LLM=IS_LOCAL_LLM[0]
-
+    LOCAL_LLM=IS_LOCAL_LLM[0],
 )
 
 LOCAL_PARAMS = dict(
@@ -54,21 +61,17 @@ LOCAL_PARAMS = dict(
     TO_SVOS=False,
     ROOT="./STATE_LOCAL/",
     CACHES="caches/",
-    OUT='out/',
-    DATA='data/',
-
+    OUT="out/",
+    DATA="data/",
     model=LOCAL_MODEL[0],
     API_BASE=LOCAL_URL,
-
-    # emebedding_model="vicuna-7b-v1.5",
+    # embedding_model="vicuna-7b-v1.5",
     emebedding_model="text-embedding-3-large",
-
     temperature=0.2,
     n=1,
     max_toks=12000,
     TOP_K=3,
-
-    LOCAL_LLM=IS_LOCAL_LLM[0]
+    LOCAL_LLM=IS_LOCAL_LLM[0],
 )
 
 
@@ -80,7 +83,7 @@ def PARAMS():
 
     LOCAL_LLM = IS_LOCAL_LLM[0]
 
-    locations = ['ROOT', 'CACHES', 'DATA', 'OUT']
+    locations = ["ROOT", "CACHES", "DATA", "OUT"]
 
     if not LOCAL_LLM:
         d = GPT_PARAMS
@@ -112,20 +115,21 @@ def ensure_openai_api_key():
 
 
 def spacer(text):
-    return ' '.join(text.split())
+    return " ".join(text.split())
 
 
 def ensure_path(fname):
     """
     makes sure path to directory and directory exist
     """
-    if '/' not in fname: return
+    if "/" not in fname:
+        return
     d, _ = os.path.split(fname)
     os.makedirs(d, exist_ok=True)
 
 
 def exists_file(fname):
-    """tests  if it exists as file or dir """
+    """tests  if it exists as file or dir"""
     return os.path.exists(fname)
 
 
@@ -141,15 +145,13 @@ def remove_dir(dname):
 def copy_file(src, dst):
     return shutil.copyfile(src, dst)
 
+
 def clear_local():
-    remove_dir(LOCAL_PARAMS['ROOT'])
+    remove_dir(LOCAL_PARAMS["ROOT"])
+
 
 def clear_caches():
-    dirs = [
-        GPT_PARAMS['ROOT'],
-        GPT_PARAMS['ROOT_'],
-        LOCAL_PARAMS['ROOT']
-    ]
+    dirs = [GPT_PARAMS["ROOT"], GPT_PARAMS["ROOT_"], LOCAL_PARAMS["ROOT"]]
     for d in dirs:
         remove_dir(d)
     return dirs

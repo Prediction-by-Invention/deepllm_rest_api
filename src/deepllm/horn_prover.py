@@ -33,7 +33,8 @@ def qprove(css0, goal=None, early=False):
 
     for h, bs in css:
         props[h] = False
-        for b in bs: props[b] = False
+        for b in bs:
+            props[b] = False
 
     for h, bs in css:
         if bs == []:
@@ -47,23 +48,26 @@ def qprove(css0, goal=None, early=False):
     while change:
         change = False
         for i, c in enumerate(css):
-            if c is None: continue
+            if c is None:
+                continue
             h, bs = c
             if all(props[b] for b in bs):
-                if h == 'false':
-                    print('CONTRADICTION:', h, bs)
+                if h == "false":
+                    print("CONTRADICTION:", h, bs)
                     # return None
                     continue
                 if not props[h] and all(props[b] for b in bs):
                     css[i] = None
                     props[h] = True
 
-                    if early and h == goal: break
+                    if early and h == goal:
+                        break
 
                     change = True
 
     model = {p for p, v in props.items() if v}
-    if goal is not None and goal not in model: return None
+    if goal is not None and goal not in model:
+        return None
 
     model = list(sorted(model))
     # print('!!! MODEL:', len(model))
@@ -72,6 +76,7 @@ def qprove(css0, goal=None, early=False):
 
 
 # tester
+
 
 def horn_formula(n):
     """
@@ -88,6 +93,7 @@ def horn_formula(n):
 
 # to make this self-contained, for testing with pypy
 
+
 def partition_(xs):
     if len(xs) == 1:
         yield [xs]
@@ -97,7 +103,7 @@ def partition_(xs):
     for smaller in partition_(xs[1:]):
         # insert `first` in each of the subpartition's subsets
         for n, subset in enumerate(smaller):
-            yield smaller[:n] + [[first] + subset] + smaller[n + 1:]
+            yield smaller[:n] + [[first] + subset] + smaller[n + 1 :]  # noqa
         # put `first` in its own subset
         yield [[first]] + smaller
 
@@ -120,7 +126,7 @@ def list_partition(n):
 
 
 def test_horn_prover(n=7):
-    print('testing on all Horn formulas of size =',n)
+    print("testing on all Horn formulas of size =", n)
     # for x in list_partition(3): print(x)
     # for x in horn_formula(3): print(x)
 
@@ -134,24 +140,26 @@ def test_horn_prover(n=7):
             no += 1
 
     t2 = time.time()
-    print(f'yes={yes}, no={no} density={yes / (yes + no)}, time={round((t2 - t1), 2)}s')
-    if n==7: assert yes==1234073 and no==4149830
+    print(f"yes={yes}, no={no} density={yes / (yes + no)}, time={round((t2 - t1), 2)}s")
+    if n == 7:
+        assert yes == 1234073 and no == 4149830
+
 
 def loop_test():
-    tree=(0,[(0,[1,2]),1,2])
+    tree = (0, [(0, [1, 2]), 1, 2])
     g, css = tree
     r = qprove(css, goal=g)
-    print('TREE RES:', r)
+    print("TREE RES:", r)
 
-    loop=(0,[(0,[1,0,2]),1,2,(3,[4,5]),4,5])
-    g,css=loop
-    r=qprove(css,goal=g)
-    print('LOOP RES from 0:',r)
+    loop = (0, [(0, [1, 0, 2]), 1, 2, (3, [4, 5]), 4, 5])
+    g, css = loop
+    r = qprove(css, goal=g)
+    print("LOOP RES from 0:", r)
 
     loop = (3, [(0, [1, 0, 2]), 1, 2, (3, [4, 5]), 4, 5])
     g, css = loop
     r = qprove(css, goal=g)
-    print('LOOP RES from 3:', r)
+    print("LOOP RES from 3:", r)
 
 
 if __name__ == "__main__":

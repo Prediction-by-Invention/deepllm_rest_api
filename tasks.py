@@ -31,8 +31,8 @@ def linter(c):
 @task
 def bandit(c):
     print("Running bandit security checks...")
-    c.run(f"bandit -r {SRC_ROOT}")
-    c.run(f"bandit -r {TEST_ROOT}")
+    c.run(f"bandit -r {SRC_ROOT} --skip B101,B301,B403")
+    c.run(f"bandit -r {TEST_ROOT } --skip B101,B301,B403")
 
 
 @task

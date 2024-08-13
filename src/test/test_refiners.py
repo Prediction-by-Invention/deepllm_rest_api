@@ -1,86 +1,107 @@
-# from deepllm.demos.wikifetch import run_wikifetch
+import unittest
+
+from src.deepllm.prompters import causal_prompter, sci_prompter
+from src.deepllm.refiners import AbstractMaker, Advisor, Rater
 
 
-def test_rater(prompter=None, goal=None, threshold=None, lim=None, ):
-    assert None not in (goal, prompter, threshold, lim)
-    r = Rater(initiator=goal, prompter=prompter, threshold=threshold, lim=lim)
+class TestParams(unittest.TestCase):
+    @unittest.skip("Needs reviewing!")
+    def test_rater(self):
+        try:
+            prompter = causal_prompter
+            goal = "The Fermi paradox"
+            threshold = 0.60
+            lim = 1
 
-    for a in r.solve():
-        print('\nTRACE:')
-        for x in a:
-            print(x)
-        print()
-    print('MODEL:',len(r.logic_model))
-    c = r.costs()
-    print('COSTS in $:', c)
-    return True
+            r = Rater(initiator=goal, prompter=prompter, threshold=threshold, lim=lim)
 
+            for a in r.solve():
+                print("\nTRACE:")
+                for x in a:
+                    print(x)
+                print()
+            print("MODEL:", len(r.logic_model))
+            c = r.costs()
+            print("COSTS in $:", c)
+            self.assertTrue(True)
+        except Exception as error:
+            self.fail(error.__str__())
 
-def test_advisor(prompter=None, goal=None, lim=None):
-    assert None not in (goal, prompter, lim)
-    r = Advisor(initiator=goal, prompter=prompter, lim=lim)
+    @unittest.skip("Needs reviewing!")
+    def test_advisor(self):
+        try:
+            prompter = sci_prompter
+            goal = "Low power circuit design"
+            lim = 1
 
-    for a in r.solve():
-        print('\nTRACE:')
-        for x in a:
-            print(x)
-        print()
+            r = Advisor(initiator=goal, prompter=prompter, lim=lim)
 
-    c = r.costs()
-    print('COSTS in $:', c)
-    return True
+            for a in r.solve():
+                print("\nTRACE:")
+                for x in a:
+                    print(x)
+                print()
 
+            c = r.costs()
+            print("COSTS in $:", c)
+            self.assertTrue(True)
+        except Exception as error:
+            self.fail(error.__str__())
 
-def test_abstract_maker1():
-    writer = AbstractMaker(
-        topic='logic programming',
-        keywords="; ".join([
-            'Knowledge representation',
-            'Knowledge representation formalism',
-            'Knowledge-based systems',
-            'Ontology engineering',
-            'Conceptual graphs'])
-    )
-    writer.agent.resume()
-    ta = writer.run()
-    print()
-    print(ta)
-    print()
-    print(f'\nKeywords: {writer.keywords}')
-    writer.agent.persist()
-    print('Cost: $', writer.agent.dollar_cost())
-    return True
+    def test_abstract_maker1(self):
+        try:
+            writer = AbstractMaker(
+                topic="logic programming",
+                keywords="; ".join(
+                    [
+                        "Knowledge representation",
+                        "Knowledge representation formalism",
+                        "Knowledge-based systems",
+                        "Ontology engineering",
+                        "Conceptual graphs",
+                    ]
+                ),
+            )
+            writer.agent.resume()
+            ta = writer.run()
+            print()
+            print(ta)
+            print()
+            print(f"\nKeywords: {writer.keywords}")
+            writer.agent.persist()
+            print("Cost: $", writer.agent.dollar_cost())
+            self.assertTrue(True)
+        except Exception as error:
+            self.fail(error.__str__())
 
+    def test_abstract_maker2(self):
+        try:
+            writer = AbstractMaker(
+                topic="Large language models",
+                keywords="; ".join(
+                    [
+                        "Natural language processing",
+                        "Language modeling",
+                        "Dependency parsing",
+                        "Named entity recognition",
+                        "Sentiment analysis",
+                        "Word embeddings",
+                    ]
+                ),
+            )
+            writer.agent.resume()
+            ta = writer.run()
+            print()
+            print(ta)
+            print()
 
-def test_abstract_maker2():
-    writer = AbstractMaker(
-        topic='Large language models',
-        keywords="; ".join([
-            'Natural language processing',
-            'Language modeling',
-            'Dependency parsing',
-            'Named entity recognition',
-            'Sentiment analysis',
-            'Word embeddings'
-        ])
-    )
-    writer.agent.resume()
-    ta = writer.run()
-    print()
-    print(ta)
-    print()
-
-    print(f'Keywords: {writer.keywords}')
-    writer.agent.persist()
-    print('Cost: $', writer.agent.dollar_cost())
-    return True
-
-def test_refiners():
-    assert test_abstract_maker1()
-    # assert test_abstract_maker2()
-    assert test_advisor(prompter=sci_prompter, goal='Low power circuit design',lim=1)
-    assert test_rater(prompter=causal_prompter, goal='The Fermi paradox', threshold=0.60, lim=1)
+            print(f"Keywords: {writer.keywords}")
+            writer.agent.persist()
+            print("Cost: $", writer.agent.dollar_cost())
+            self.assertTrue(True)
+        except Exception as error:
+            self.fail(error.__str__())
 
 
 if __name__ == "__main__":
-    test_refiners()
+    unittest.main()

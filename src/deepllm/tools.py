@@ -1,7 +1,8 @@
 # helpers with text cleaning
 
+
 def spacer(text):
-    return ' '.join(text.split())
+    return " ".join(text.split())
 
 
 def de_itemize(x):
@@ -11,11 +12,11 @@ def de_itemize(x):
         r = x[2:]
     elif x and x[0].isdigit and x[1].isdigit and x[2] == ".":
         r = x[3:]
-    elif x and x[0] == '-':
+    elif x and x[0] == "-":
         r = x[1:]
     else:
         r = x
-    r = r.replace('"', '').replace("'", ' ').strip()
+    r = r.replace('"', "").replace("'", " ").strip()
     return r
 
 
@@ -58,14 +59,15 @@ def from_text(text):
     lines = text.split("\n")
     res = []
     for line in lines:
-        if len(line) < 4: continue
+        if len(line) < 4:
+            continue
         line = line.strip()
-        if line.endswith('?') or line.endswith('.'):
+        if line.endswith("?") or line.endswith("."):
             line = line[0:-1]
         res.append(line)
     return res
 
 
 def file2string(fname):
-    with open(fname, 'r') as f:
+    with open(fname, "r") as f:
         return f.read()

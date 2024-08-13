@@ -160,7 +160,7 @@ UPLOAD_DIR/
 SENT_CACHE/
 scratch/
 deepllm/apps/*.html
-deepQA/OUT/
+src/deep_qa/OUT/
 docdiver/docs
 SENT_STORE_CACHE/
 

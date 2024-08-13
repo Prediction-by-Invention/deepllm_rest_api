@@ -1,20 +1,21 @@
-from src.deepllm.params import *
+import unittest
+
+from src.deepllm.params import PARAMS
 
 
 class Temp:
     def __init__(self):
-        self.hi = 'hello'
+        self.hi = "hello"
 
 
-def test_params():
-    CF = PARAMS()
-    print(CF)
-    CF.TRACE = 1
-    d = CF(Temp())
-    print(d.hi, d.TRACE)
-    assert d.TRACE == 1
-    # print(CF)
+class TestParams(unittest.TestCase):
+
+    def test_params(self) -> None:
+        cf = PARAMS()
+        cf.TRACE = 1  # type: ignore
+        d = cf(Temp())
+        self.assertEqual(d.TRACE, 1)
 
 
 if __name__ == "__main__":
-    test_params()
+    unittest.main()

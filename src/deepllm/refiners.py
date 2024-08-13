@@ -1,15 +1,25 @@
 from sentence_store.main import Embedder
-from deepllm.prompters import *
-from deepllm.recursors import *
+
+from src.deepllm.interactors import Agent
+from src.deepllm.params import PARAMS, exists_file, tprint
+from src.deepllm.prompters import (
+    advisor_oracle,
+    paper_reviewer,
+    rater_oracle,
+    retrieval_refiner,
+    sci_abstract_maker,
+    summary_maker,
+)
+from src.deepllm.recursors import AndOrExplorer, ask_for_clean, just_ask
 
 
 class Advisor(AndOrExplorer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        pname = advisor_oracle['name']
-        oname = f'{self.name}_{pname}'
+        pname = advisor_oracle["name"]
+        oname = f"{self.name}_{pname}"
         self.oracle = Agent(name=oname)
-        self.oracle.set_pattern(advisor_oracle['decider_p'])
+        self.oracle.set_pattern(advisor_oracle["decider_p"])
 
     def appraise(self, g, _trace):
         # xs = to_list((g, trace))
@@ -17,9 +27,9 @@ class Advisor(AndOrExplorer):
 
         advice = just_ask(self.oracle, g=g, context=self.initiator)
 
-        tprint('!!! ADVICE for:', g, advice)
+        tprint("!!! ADVICE for:", g, advice)
 
-        return advice.startswith('True')
+        return advice.startswith("True")
 
     def resume(self):
         super().resume()
@@ -31,17 +41,17 @@ class Advisor(AndOrExplorer):
 
     def costs(self):
         d = super().costs()
-        d['oracle'] = self.oracle.dollar_cost()
+        d["oracle"] = self.oracle.dollar_cost()
         return d
 
 
 class Rater(AndOrExplorer):
     def __init__(self, threshold=None, **kwargs):
         super().__init__(**kwargs)
-        pname = rater_oracle['name']
-        oname = f'{self.name}_{pname}'
+        pname = rater_oracle["name"]
+        oname = f"{self.name}_{pname}"
         self.oracle = Agent(oname)
-        self.oracle.set_pattern(rater_oracle['rater_p'])
+        self.oracle.set_pattern(rater_oracle["rater_p"])
         self.threshold = threshold
 
     def appraise(self, g, _trace):
@@ -49,18 +59,19 @@ class Rater(AndOrExplorer):
         advice = ask_for_clean(self.oracle, g=g, context=self.initiator)
 
         if not advice:
-            tprint('*** NO ADVICE FOR:', g)
+            tprint("*** NO ADVICE FOR:", g)
             return False
 
         rating = advice[0].strip()
 
-        tprint(f'\n-----EXPLANATION {rating}\n---\n')
-        rating = rating.split('|')[0].strip()
-        if ' ' in rating: rating = rating.split()[1]
+        tprint(f"\n-----EXPLANATION {rating}\n---\n")
+        rating = rating.split("|")[0].strip()
+        if " " in rating:
+            rating = rating.split()[1]
         try:
             f = float(rating)
         except Exception:
-            print('*** UNPARSED RATING:', advice)
+            print("*** UNPARSED RATING:", advice)
             f = 5
         f = f / 100.0
 
@@ -80,13 +91,13 @@ class Rater(AndOrExplorer):
 
     def costs(self):
         d = super().costs()
-        d['oracle'] = self.oracle.dollar_cost()
+        d["oracle"] = self.oracle.dollar_cost()
         return d
 
 
-def load_ground_truth(truth_file='logic_programming'):
-    with open(f'{PARAMS().DATA}{truth_file}.txt', 'r') as f:
-        sents = f.read().split('\n')
+def load_ground_truth(truth_file="logic_programming"):
+    with open(f"{PARAMS().DATA}{truth_file}.txt", "r") as f:
+        sents = f.read().split("\n")
     return [s for s in sents if s]
 
 
@@ -103,7 +114,7 @@ class TruthRater(AndOrExplorer):
         self.threshold = threshold
         self.store = Embedder(truth_file)
         self.truth_file = truth_file
-        if not exists_file(self.store.cache('.bin')):
+        if not exists_file(self.store.cache(".bin")):
             sents = load_ground_truth(truth_file=truth_file)
             self.store.store(sents)
         self.top_k = PARAMS().TOP_K
@@ -122,9 +133,12 @@ class TruthRater(AndOrExplorer):
             ok = True
         else:
             ok = False
-        tprint(f'RATING of "{self.initiator}->{g}" w.r.t truth in "{self.truth_file}.txt" is {round(r, 4)} --> {ok}')
-        tprint('AS AVG. OF NEAREST SENTS:')
-        for sent, r in sents_rs: tprint(sent, '->', round(r, 4))
+        tprint(
+            f'RATING of "{self.initiator}->{g}" w.r.t truth in "{self.truth_file}.txt" is {round(r, 4)} --> {ok}'
+        )
+        tprint("AS AVG. OF NEAREST SENTS:")
+        for sent, r in sents_rs:
+            tprint(sent, "->", round(r, 4))
         return ok
 
 
@@ -134,10 +148,10 @@ class AbstractMaker:
         self.topic = " ".join(topic.strip().split())
         self.keywords = keywords
         prompter = sci_abstract_maker
-        pname = prompter['name']
-        tname = topic.replace(' ', '_').lower()
-        self.agent = Agent(f'{tname}_{pname}')
-        self.agent.set_pattern(prompter['writer_p'])
+        pname = prompter["name"]
+        tname = topic.replace(" ", "_").lower()
+        self.agent = Agent(f"{tname}_{pname}")
+        self.agent.set_pattern(prompter["writer_p"])
         PARAMS()(self)
 
     def clear(self):
@@ -157,13 +171,14 @@ class SummaryMaker:
         self.kwd_count = kwd_count
         self.cache = cache
         prompter = summary_maker
-        pname = prompter['name']
+        pname = prompter["name"]
         if tname is None:
-            tname = text[0:20].replace(' ', '_')
-        self.agent = Agent(f'{tname}_{pname}')
-        self.agent.set_pattern(prompter['sum_p'])
+            tname = text[0:20].replace(" ", "_")
+        self.agent = Agent(f"{tname}_{pname}")
+        self.agent.set_pattern(prompter["sum_p"])
         PARAMS()(self)
-        if self.cache: self.agent.resume()
+        if self.cache:
+            self.agent.resume()
 
     def clear(self):
         self.agent.clear()
@@ -173,14 +188,13 @@ class SummaryMaker:
 
     def run(self):
         answer = self.agent.ask(
-            text=self.text,
-            sum_size=self.sum_size,
-            kwd_count=self.kwd_count
+            text=self.text, sum_size=self.sum_size, kwd_count=self.kwd_count
         )
-        if self.cache: self.agent.persist()
+        if self.cache:
+            self.agent.persist()
         print("\n\nANSWER:----------\n")
         print(answer)
-        print('------\n\n')
+        print("------\n\n")
         return str(answer)
 
 
@@ -189,13 +203,14 @@ class PaperReviewer:
         self.text = text
         self.cache = cache
         prompter = paper_reviewer
-        pname = prompter['name']
+        pname = prompter["name"]
         if tname is None:
-            tname = text[0:20].replace(' ', '_')
-        self.agent = Agent(f'{tname}_{pname}')
-        self.agent.set_pattern(prompter['rev_p'])
+            tname = text[0:20].replace(" ", "_")
+        self.agent = Agent(f"{tname}_{pname}")
+        self.agent.set_pattern(prompter["rev_p"])
         PARAMS()(self)
-        if self.cache: self.agent.resume()
+        if self.cache:
+            self.agent.resume()
 
     def clear(self):
         self.agent.clear()
@@ -207,7 +222,8 @@ class PaperReviewer:
         answer = self.agent.ask(
             text=self.text,
         )
-        if self.cache: self.agent.persist()
+        if self.cache:
+            self.agent.persist()
         return str(answer)
 
 
@@ -217,13 +233,14 @@ class RetrievalRefiner:
         self.quest = quest
         self.cache = cache
         prompter = retrieval_refiner
-        pname = prompter['name']
+        pname = prompter["name"]
         if tname is None:
-            tname = text[0:20].replace(' ', '_')
-        self.agent = Agent(f'{tname}_{pname}')
-        self.agent.set_pattern(prompter['rev_p'])
+            tname = text[0:20].replace(" ", "_")
+        self.agent = Agent(f"{tname}_{pname}")
+        self.agent.set_pattern(prompter["rev_p"])
         PARAMS()(self)
-        if self.cache: self.agent.resume()
+        if self.cache:
+            self.agent.resume()
 
     def clear(self):
         self.agent.clear()
@@ -232,9 +249,7 @@ class RetrievalRefiner:
         return self.agent.dollar_cost()
 
     def run(self):
-        answer = self.agent.ask(
-            text=self.text,
-            quest=self.quest
-        )
-        if self.cache: self.agent.persist()
+        answer = self.agent.ask(text=self.text, quest=self.quest)
+        if self.cache:
+            self.agent.persist()
         return str(answer)

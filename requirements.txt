@@ -1,2 +1,15 @@
+bandit
+black
+fastapi
+flake8
+invoke
+isort
+mypy
+openai
+python-dotenv
+pyvis
+sentence_store
+sentence_transformers
+sentify
 streamlit
-deepllm
+tiktoken
