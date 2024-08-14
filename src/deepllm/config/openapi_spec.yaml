@@ -13,65 +13,58 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                recursor:
-                  type: string
-                  enum: [Recursor, Advisor, Rater]
-                  description: Type of LLM agent to use
-                threshold:
-                  type: number
-                  format: float
-                  description: Threshold for the Rater agent
-                max_depth:
-                  type: integer
-                  description: Maximum depth for recursion
-                svos:
-                  type: boolean
-                  description: Extract relations (SVOs) from the result
-                trace:
-                  type: boolean
-                  description: Show trace of the query execution
-                topic:
-                  type: string
-                  description: Topic to explore
-                prompter_name:
-                  type: string
-                  description: Name of the prompter to use
-              required:
-                - recursor
-                - max_depth
-                - topic
-                - prompter_name
-              example:
-                recursor: Recursor
-                threshold: 0.5
-                max_depth: 3
-                svos: true
-                trace: false
-                topic: "artificial general intelligence"
-                prompter_name: "default_prompter"
+              $ref: '#/components/schemas/QueryRequest'
       responses:
         '200':
           description: Query successful
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  kind:
-                    type: string
-                    description: The type of result (e.g., TRACE, CLAUSES, MODEL, SVOS, COSTS)
-                  data:
-                    type: object
-                    description: The data corresponding to the kind
+                $ref: '#/components/schemas/QueryResponse'
         '400':
           description: Invalid input
 
-
-
 components:
   schemas:
+    QueryRequest:
+      type: object
+      properties:
+        recursor:
+          type: string
+          enum: [ Recursor, Advisor, Rater ]
+          description: Type of LLM agent to use
+        threshold:
+          type: number
+          format: float
+          description: Threshold for the Rater agent
+        max_depth:
+          type: integer
+          description: Maximum depth for recursion
+        svos:
+          type: boolean
+          description: Extract relations (SVOs) from the result
+        trace:
+          type: boolean
+          description: Show trace of the query execution
+        topic:
+          type: string
+          description: Topic to explore
+        prompter_name:
+          type: string
+          description: Name of the prompter to use
+      required:
+        - recursor
+        - max_depth
+        - topic
+        - prompter_name
+      example:
+        recursor: Recursor
+        threshold: 0.5
+        max_depth: 1
+        svos: true
+        trace: false
+        topic: "artificial general intelligence"
+        prompter_name: "scientific_concept_explorer"
     QueryResponse:
       type: object
       properties:

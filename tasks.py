@@ -25,7 +25,7 @@ def formatter(c):
 def linter(c):
     print("Running flake8...")
     # E501 is turned off - ignore long lines and whitespaces
-    c.run(f"flake8 --extend-ignore=E501,W291,W293 {SRC_ROOT}")
+    c.run(f"flake8 --extend-ignore=E501,W291,W293,E402 {SRC_ROOT}")
 
 
 @task

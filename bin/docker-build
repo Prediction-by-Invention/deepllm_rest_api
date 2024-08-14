@@ -1,0 +1,23 @@
+#!/bin/bash
+
+pwd
+
+##################################################
+#  change to dir of script
+##################################################
+cd "${0%/*}"
+
+##################################################
+#  change to dir of app
+##################################################
+cd ..
+
+##################################################
+#  source the .env file to load environment variables
+##################################################
+cp .env /tmp/pb.env
+set -a
+source /tmp/pb.env || :
+set +a
+
+docker build --build-arg OPENAI_API_KEY="$OPENAI_API_KEY"  -t deepllm:latest .

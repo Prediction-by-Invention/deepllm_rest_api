@@ -1,19 +1,28 @@
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Generator
 
 import uvicorn
 import yaml  # noqa
 from fastapi import FastAPI
-from starlette.responses import HTMLResponse
-
-from src.deepllm.exceptions.api_exception import APIException
-from src.deepllm.util.file_path_util import FilePathUtil
+from starlette.responses import HTMLResponse, StreamingResponse
 
 # add parent path to sys.path
 sys.path.insert(0, Path(__file__).parent.__str__())
 sys.path.insert(0, Path(__file__).parent.parent.__str__())
 sys.path.insert(0, Path(__file__).parent.parent.parent.__str__())
+
+from src.deepllm.api import (
+    activate_svos,
+    deactivate_svos,
+    run_advisor,
+    run_rater,
+    run_recursor,
+)
+from src.deepllm.exceptions.api_exception import APIException
+from src.deepllm.rest_api.entities import QueryRequest, QueryResponse
+from src.deepllm.util.file_path_util import FilePathUtil
+from src.deepllm.prompters import prompter_dict
 
 app = FastAPI()
 
@@ -53,11 +62,39 @@ def get_root() -> Any:
 
 
 @app.post("/v1/query")
-def do_query(request) -> Any:
+async def do_query(query: QueryRequest) -> StreamingResponse:
     try:
-        request: str = request.prompt
-        print(request)
-        return None
+        print(query)
+
+        if query.svos:
+            activate_svos()
+        else:
+            deactivate_svos()
+
+        prompters = prompter_dict()
+
+        def generate_response() -> Generator[QueryResponse, None, None]:
+            if query.recursor == "Recursor":
+                g = run_recursor(
+                    initiator=query.topic, prompter=prompters[query.prompter_name], lim=query.max_depth
+                )
+            elif query.recursor == "Advisor":
+                g = run_advisor(
+                    initiator=query.topic, prompter=prompters[query.prompter_name], lim=query.max_depth
+                )
+            else:
+                g = run_rater(
+                    initiator=query.topic,
+                    prompter=prompters[query.prompter_name],
+                    lim=query.max_depth,
+                    threshold=query.threshold,
+                )
+
+            for kind, data in g:
+                yield QueryResponse(kind=kind, data=data).json()
+
+        return StreamingResponse(generate_response(), media_type = "application/text; charset=utf-8") # noqa
+
     except Exception as error:
         raise APIException(error.__str__())
 
